@@ -1,0 +1,9 @@
+*.json
+**/__pycache__
+.DS_Store
+*.egg-info
+.cache
+data/image.jpeg
+local/*
+!local/.gitkeep
+tmp
