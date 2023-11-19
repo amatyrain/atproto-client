@@ -1,3 +1,4 @@
+import datetime
 import requests
 import json
 from libs.atproto.models.embed.external.view import View
@@ -26,36 +27,34 @@ class AtprotoClient:
         data=None,
     ) -> requests.Response:
         url = f"{self.base_url}/{endpoint}"
+        print(f"url: {url}")
+        print(f"method: {method}")
+        print(f"params: {params}")
+
         response = requests.request(
-            method=method,
-            url=url,
-            params=params,
-            data=data,
-            headers=headers
+            method=method, url=url, params=params, data=data, headers=headers
         )
+
+        if response.status_code >= 400:
+            print("【AtprotoClient】投稿に失敗しました。")
+            print(f"status_code: {response.status_code}")
+            raise Exception(f"atproto_api: {response.text}\n{data}")
+
         return response
 
     def create_session(self) -> list[str, str]:
         endpoint = "com.atproto.server.createSession"
         method = "POST"
 
-        data = {
-            "identifier": self.identifier,
-            "password": self.password
-        }
+        data = {"identifier": self.identifier, "password": self.password}
 
-        headers = {
-            "Content-Type": "application/json; charset=UTF-8"
-        }
+        headers = {"Content-Type": "application/json; charset=UTF-8"}
 
         response = self._request(
-            endpoint=endpoint,
-            method=method,
-            data=json.dumps(data),
-            headers=headers
+            endpoint=endpoint, method=method, data=json.dumps(data), headers=headers
         )
 
-        print(response)
+        print(response.text)
 
         access_jwt = response.json()["accessJwt"]
         did = response.json()["did"]
@@ -70,10 +69,7 @@ class AtprotoClient:
         headers = {"Authorization": f"Bearer {access_jwt}"}
 
         response = self._request(
-            endpoint=endpoint,
-            method=method,
-            params=params,
-            headers=headers
+            endpoint=endpoint, method=method, params=params, headers=headers
         )
 
         response_json = response.json()
@@ -84,21 +80,27 @@ class AtprotoClient:
             text = feed["post"]["record"]["text"]
             created_at = feed["post"]["record"]["createdAt"]
             cid = feed["post"]["cid"]
-            parent_cid = feed["post"]["record"]["reply"]["parent"]["cid"] \
-                if "reply" in feed["post"]["record"] else ''
+            parent_cid = (
+                feed["post"]["record"]["reply"]["parent"]["cid"]
+                if "reply" in feed["post"]["record"]
+                else ""
+            )
 
             """
             feedを構築
             """
             # facetsを構築
             facets = []
-            facet_dict_list = feed["post"]["record"]["facets"] \
-                if "facets" in feed["post"]["record"] else []
+            facet_dict_list = (
+                feed["post"]["record"]["facets"]
+                if "facets" in feed["post"]["record"]
+                else []
+            )
             for facet_dict in facet_dict_list:
                 # indexを構築
                 index = ByteSlice(
                     byteStart=facet_dict["index"]["byteStart"],
-                    byteEnd=facet_dict["index"]["byteEnd"]
+                    byteEnd=facet_dict["index"]["byteEnd"],
                 )
 
                 # featuresを構築
@@ -114,24 +116,18 @@ class AtprotoClient:
                     if feature is not None:
                         features.append(feature)
 
-                facet = Facet(
-                    index=index,
-                    features=features
-                )
+                facet = Facet(index=index, features=features)
 
                 facets.append(facet)
 
             # recordを構築
-            record = Record(
-                text=text,
-                created_at=created_at,
-                facets=facets
-            )
+            record = Record(text=text, created_at=created_at, facets=facets)
 
             # embedを構築
             embed = None
-            post_embed_type = feed["post"]["embed"]["$type"] \
-                if "embed" in feed["post"] else None
+            post_embed_type = (
+                feed["post"]["embed"]["$type"] if "embed" in feed["post"] else None
+            )
             if post_embed_type is not None:
                 embed_dict = feed["post"]["embed"]["external"]
                 if post_embed_type == "app.bsky.embed.external#view":
@@ -139,25 +135,52 @@ class AtprotoClient:
                         uri=embed_dict["uri"],
                         title=embed_dict["title"],
                         description=embed_dict["description"],
-                        thumb=embed_dict["thumb"]
+                        thumb=embed_dict["thumb"],
                     )
 
             # postを構築
-            post = PostView(
-                cid=cid,
-                record=record,
-                embed=embed
-            )
+            post = PostView(cid=cid, record=record, embed=embed)
 
-            feed_list.append(FeedViewPost(
-                post=post,
-                reply=ReplyRef(
-                    parent=PostView(
-                        cid=parent_cid,
+            feed_list.append(
+                FeedViewPost(
+                    post=post,
+                    reply=ReplyRef(
+                        parent=PostView(
+                            cid=parent_cid,
+                        ),
                     ),
                 )
-            ))
+            )
             # if "embed" in feed["post"]:
             #     print(feed["post"]["embed"]["images"][0]["fullsize"])
 
         return feed_list
+
+    def create_record(self, text: str):
+        endpoint = "com.atproto.repo.createRecord"
+        method = "POST"
+
+        post = {
+            "$type": "app.bsky.feed.post",
+            "text": text,
+            "createdAt": datetime.datetime.now().isoformat(),
+        }
+
+        data = {
+            "repo": self.did,
+            "collection": "app.bsky.feed.post",
+            "record": post,
+        }
+
+        headers = {
+            "Authorization": f"Bearer {self.access_jwt}",
+            "Content-Type": "application/json; charset=UTF-8",
+        }
+
+        response = self._request(
+            endpoint=endpoint, method=method, data=json.dumps(data), headers=headers
+        )
+
+        print(response.text)
+
+        return response.json()
