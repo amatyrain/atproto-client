@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+import dataclasses
 
 
-class NotFoundPost(BaseModel):
+@dataclasses.dataclass
+class NotFoundPost():
     uri: str
     notFound: bool = True

@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+import dataclasses
 
 
-class Link(BaseModel):
+@dataclasses.dataclass
+class Link():
     # "uri": { "type": "string", "format": "uri" }
     uri: str

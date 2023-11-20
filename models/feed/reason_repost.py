@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+import dataclasses
 
 
-class ReasonRepost(BaseModel):
+@dataclasses.dataclass
+class ReasonRepost():
     text: str
     created_at: str  # 2023-11-18T10:42:49.198Z
     cid: str

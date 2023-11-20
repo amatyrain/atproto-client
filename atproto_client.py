@@ -61,12 +61,12 @@ class AtprotoClient:
 
         return [access_jwt, did]
 
-    def get_author_feed(self, access_jwt) -> list[FeedViewPost]:
+    def get_author_feed(self) -> list[FeedViewPost]:
         endpoint = "app.bsky.feed.getAuthorFeed"
         method = "GET"
 
         params = {"actor": self.identifier}
-        headers = {"Authorization": f"Bearer {access_jwt}"}
+        headers = {"Authorization": f"Bearer {self.access_jwt}"}
 
         response = self._request(
             endpoint=endpoint, method=method, params=params, headers=headers
@@ -156,15 +156,55 @@ class AtprotoClient:
 
         return feed_list
 
+    def generate_post_from_text(self, text: str) -> dict:
+        # URLを元の状態に戻す
+        origin_text = text
+
+        # origin_textからURLを抽出
+        url_list = []
+        for word in origin_text.split("\n"):
+            if word.startswith("http"):
+                url_list.append(word)
+
+        # textをbyte文字列に変換
+        byte_text = origin_text.encode("utf-8")
+
+        # facetsを構築
+        facets = []
+        for url in url_list:
+            # indexを構築
+            index = {
+                "byteStart": byte_text.find(url.encode("utf-8")),
+                "byteEnd": byte_text.find(url.encode("utf-8")) + len(url),
+            }
+
+            # featuresを構築
+            features = []
+            feature = {
+                "$type": "app.bsky.richtext.facet#link",
+                "uri": url,
+            }
+            features.append(feature)
+
+            facet = {
+                "index": index,
+                "features": features,
+            }
+
+            facets.append(facet)
+
+        return {
+            "$type": "app.bsky.feed.post",
+            "text": text,
+            "createdAt": datetime.datetime.now().isoformat(),
+            "facets": facets,
+        }
+
     def create_record(self, text: str):
         endpoint = "com.atproto.repo.createRecord"
         method = "POST"
 
-        post = {
-            "$type": "app.bsky.feed.post",
-            "text": text,
-            "createdAt": datetime.datetime.now().isoformat(),
-        }
+        post = self.generate_post_from_text(text=text)
 
         data = {
             "repo": self.did,

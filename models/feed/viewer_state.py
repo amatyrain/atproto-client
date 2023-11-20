@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+import dataclasses
 
 
-class viewerState(BaseModel):
+@dataclasses.dataclass
+class viewerState():
     repost: str
     like: str

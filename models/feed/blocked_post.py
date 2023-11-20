@@ -1,7 +1,8 @@
-from pydantic import BaseModel
+import dataclasses
 
 
-class BlockedPost(BaseModel):
+@dataclasses.dataclass
+class BlockedPost():
     uri: str
     blocked: bool = True
     author: dict
