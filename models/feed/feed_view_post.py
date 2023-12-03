@@ -1,7 +1,7 @@
 import dataclasses
-from libs.atproto.models.feed.post_view import PostView
-from libs.atproto.models.feed.reply_ref import ReplyRef
-from libs.atproto.models.feed.reason_repost import ReasonRepost
+from ...models.feed.post_view import PostView
+from ...models.feed.reply_ref import ReplyRef
+from ...models.feed.reason_repost import ReasonRepost
 
 
 @dataclasses.dataclass

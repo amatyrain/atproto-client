@@ -1,6 +1,6 @@
 import dataclasses
-from libs.atproto.models.embed.external.view import View
-from libs.atproto.models.richtext.facet.facet import Facet
+from ...models.embed.external.view import View
+from ...models.richtext.facet.facet import Facet
 
 
 @dataclasses.dataclass

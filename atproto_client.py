@@ -1,14 +1,14 @@
 import datetime
 import requests
 import json
-from libs.atproto.models.embed.external.view import View
-from libs.atproto.models.feed.feed_view_post import FeedViewPost
-from libs.atproto.models.feed.post_view import PostView
-from libs.atproto.models.feed.recored import Record
-from libs.atproto.models.feed.reply_ref import ReplyRef
-from libs.atproto.models.richtext.facet.byte_slice import ByteSlice
-from libs.atproto.models.richtext.facet.facet import Facet
-from libs.atproto.models.richtext.facet.link import Link
+from .models.embed.external.view import View
+from .models.feed.feed_view_post import FeedViewPost
+from .models.feed.post_view import PostView
+from .models.feed.recored import Record
+from .models.feed.reply_ref import ReplyRef
+from .models.richtext.facet.byte_slice import ByteSlice
+from .models.richtext.facet.facet import Facet
+from .models.richtext.facet.link import Link
 
 
 class AtprotoClient:

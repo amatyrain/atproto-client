@@ -1,6 +1,6 @@
 import dataclasses
-from libs.atproto.models.embed.external.view import View
-from libs.atproto.models.feed.recored import Record
+from ...models.embed.external.view import View
+from ...models.feed.recored import Record
 
 
 # DTOクラス定義

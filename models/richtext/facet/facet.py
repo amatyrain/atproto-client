@@ -1,6 +1,6 @@
 import dataclasses
-from libs.atproto.models.richtext.facet.byte_slice import ByteSlice
-from libs.atproto.models.richtext.facet.link import Link
+from ....models.richtext.facet.byte_slice import ByteSlice
+from ....models.richtext.facet.link import Link
 
 
 @dataclasses.dataclass

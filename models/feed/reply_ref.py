@@ -1,7 +1,7 @@
 import dataclasses
-from libs.atproto.models.feed.blocked_post import BlockedPost
-from libs.atproto.models.feed.not_found_post import NotFoundPost
-from libs.atproto.models.feed.post_view import PostView
+from ...models.feed.blocked_post import BlockedPost
+from ...models.feed.not_found_post import NotFoundPost
+from ...models.feed.post_view import PostView
 
 
 @dataclasses.dataclass
