@@ -200,11 +200,46 @@ class AtprotoClient:
             "facets": facets,
         }
 
-    def create_record(self, text: str):
+    def upload_image(self, image_url: str) -> dict:
+        IMAGE_MIMETYPE = "image/png"
+        # url to media binary data
+        response = requests.get(image_url)
+        img_bytes = response.content
+
+        # this size limit is specified in the app.bsky.embed.images lexicon
+        if len(img_bytes) > 1000000:
+            raise Exception(
+                f"image file size too large. 1000000 bytes maximum, got: {len(img_bytes)}"
+            )
+
+        resp = requests.post(
+            "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+            headers={
+                "Content-Type": IMAGE_MIMETYPE,
+                "Authorization": "Bearer " + self.access_jwt,
+            },
+            data=img_bytes,
+        )
+        resp.raise_for_status()
+        blob = resp.json()["blob"]
+
+        return blob
+
+    def create_record(self, text: str, image_url: str = None):
         endpoint = "com.atproto.repo.createRecord"
         method = "POST"
 
         post = self.generate_post_from_text(text=text)
+
+        if image_url is not None:
+            blob = self.upload_image(image_url=image_url)
+            post["embed"] = {
+                "$type": "app.bsky.embed.images",
+                "images": [{
+                    "alt": "image",
+                    "image": blob,
+                }],
+            }
 
         data = {
             "repo": self.did,
