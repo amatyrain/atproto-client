@@ -193,10 +193,13 @@ class AtprotoClient:
 
             facets.append(facet)
 
+        created_at = datetime.datetime.now(
+            tz=datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="milliseconds") + "Z"
+
         return {
             "$type": "app.bsky.feed.post",
             "text": text,
-            "createdAt": datetime.datetime.now().isoformat(),
+            "createdAt": created_at,
             "facets": facets,
         }
 
