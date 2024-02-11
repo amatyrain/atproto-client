@@ -129,7 +129,8 @@ class AtprotoClient:
                 feed["post"]["embed"]["$type"] if "embed" in feed["post"] else None
             )
             if post_embed_type is not None:
-                embed_dict = feed["post"]["embed"]["external"]
+                post_embed_type_key = post_embed_type.split(".")[-1].split("#")[0]
+                embed_dict = feed["post"]["embed"][post_embed_type_key]
                 if post_embed_type == "app.bsky.embed.external#view":
                     embed = View(
                         uri=embed_dict["uri"],
@@ -156,7 +157,32 @@ class AtprotoClient:
 
         return feed_list
 
-    def generate_post_from_text(self, text: str) -> dict:
+    def generate_post_from_text(self, text: str, self_labels: list[str] = None) -> dict:
+        """_summary_
+
+        Args:
+            text (str): _description_
+            self_labels (ex. "porn")
+
+        Returns:
+            dict: _description_
+        """
+        post = {
+            "$type": "app.bsky.feed.post",
+            "text": text,
+        }
+
+        # labelsを構築
+        if self_labels is not None:
+            label_values = []
+            for label in self_labels:
+                label_values.append({"val": label})
+            labels = {
+                "$type": "com.atproto.label.defs#selfLabels",
+                "values": label_values,
+            }
+            post["labels"] = labels
+
         # URLを元の状態に戻す
         origin_text = text
 
@@ -192,16 +218,13 @@ class AtprotoClient:
             }
 
             facets.append(facet)
+        post["facets"] = facets
 
         created_at = datetime.datetime.now(
             tz=datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="milliseconds") + "Z"
+        post["createdAt"] = created_at
 
-        return {
-            "$type": "app.bsky.feed.post",
-            "text": text,
-            "createdAt": created_at,
-            "facets": facets,
-        }
+        return post
 
     def upload_image(self, image_url: str) -> dict:
         IMAGE_MIMETYPE = "image/png"
@@ -228,11 +251,13 @@ class AtprotoClient:
 
         return blob
 
-    def create_record(self, text: str, image_url: str = None):
+    def create_record(self, text: str, image_url: str = None, self_labels: list[str] = None):
         endpoint = "com.atproto.repo.createRecord"
         method = "POST"
 
-        post = self.generate_post_from_text(text=text)
+        post = self.generate_post_from_text(
+            text=text, self_labels=self_labels
+        )
 
         if image_url is not None:
             blob = self.upload_image(image_url=image_url)
