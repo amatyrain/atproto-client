@@ -287,3 +287,21 @@ class AtprotoClient:
         print(response.text)
 
         return response.json()
+
+    def get_profile(self, actor: str) -> dict:
+        """
+        ref: https://www.docs.bsky.app/docs/api/app-bsky-actor-get-profile
+        """
+        endpoint = "app.bsky.actor.getProfile"
+        method = "GET"
+
+        params = {"actor": actor}
+        headers = {
+            "Authorization": f"Bearer {self.access_jwt}"
+        }
+
+        response = self._request(
+            endpoint=endpoint, method=method, params=params, headers=headers
+        )
+
+        return response.json()
