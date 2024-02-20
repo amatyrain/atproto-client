@@ -305,3 +305,24 @@ class AtprotoClient:
         )
 
         return response.json()
+
+    def search_posts(self, q: str, limit: int) -> dict:
+        """
+        ref: https://www.docs.bsky.app/docs/api/app-bsky-feed-search-posts
+        """
+        endpoint = "app.bsky.feed.searchPosts"
+        method = "GET"
+
+        params = {
+            "q": q,
+            "limit": limit,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.access_jwt}"
+        }
+
+        response = self._request(
+            endpoint=endpoint, method=method, params=params, headers=headers
+        )
+
+        return response.json()
