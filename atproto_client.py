@@ -17,12 +17,15 @@ class AtprotoClient:
         self.password = password
         self.base_url = "https://bsky.social/xrpc"
         self.access_jwt, self.did = self.create_session()
+        self.headers = {
+            "Authorization": f"Bearer {self.access_jwt}"
+        }
 
     def _request(
         self,
         endpoint,
         method,
-        headers,
+        headers: dict | None = None,
         params=None,
         data=None,
     ) -> requests.Response:
@@ -30,6 +33,9 @@ class AtprotoClient:
         print(f"url: {url}")
         print(f"method: {method}")
         print(f"params: {params}")
+
+        if headers is None:
+            headers = self.headers
 
         response = requests.request(
             method=method, url=url, params=params, data=data, headers=headers
@@ -290,7 +296,7 @@ class AtprotoClient:
 
     def get_profile(self, actor: str) -> dict:
         """
-        ref: https://www.docs.bsky.app/docs/api/app-bsky-actor-get-profile
+        Ref: https://www.docs.bsky.app/docs/api/app-bsky-actor-get-profile
         """
         endpoint = "app.bsky.actor.getProfile"
         method = "GET"
@@ -306,9 +312,16 @@ class AtprotoClient:
 
         return response.json()
 
-    def search_posts(self, q: str, limit: int) -> dict:
+    def search_posts(self, q: str, limit: int = 25) -> dict:
         """
-        ref: https://www.docs.bsky.app/docs/api/app-bsky-feed-search-posts
+        Args:
+            q (str): Search query string; syntax, phrase, boolean, and faceting is unspecified, but Lucene query syntax is recommended.
+            limit (int): 1 to 100
+
+        Returns:
+            _type_: _description_
+
+        Ref: https://www.docs.bsky.app/docs/api/app-bsky-feed-search-posts
         """
         endpoint = "app.bsky.feed.searchPosts"
         method = "GET"
@@ -317,12 +330,9 @@ class AtprotoClient:
             "q": q,
             "limit": limit,
         }
-        headers = {
-            "Authorization": f"Bearer {self.access_jwt}"
-        }
 
         response = self._request(
-            endpoint=endpoint, method=method, params=params, headers=headers
+            endpoint=endpoint, method=method, params=params
         )
 
         return response.json()
