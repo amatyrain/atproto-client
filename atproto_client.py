@@ -48,7 +48,7 @@ class AtprotoClient:
 
         return response
 
-    def create_session(self) -> list[str, str]:
+    def create_session(self) -> list[str]:
         endpoint = "com.atproto.server.createSession"
         method = "POST"
 
