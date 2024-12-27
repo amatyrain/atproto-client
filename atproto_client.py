@@ -17,9 +17,7 @@ class AtprotoClient:
         self.password = password
         self.base_url = "https://bsky.social/xrpc"
         self.access_jwt, self.did = self.create_session()
-        self.headers = {
-            "Authorization": f"Bearer {self.access_jwt}"
-        }
+        self.headers = {"Authorization": f"Bearer {self.access_jwt}"}
 
     def _request(
         self,
@@ -163,7 +161,9 @@ class AtprotoClient:
 
         return feed_list
 
-    def generate_post_from_text(self, text: str, self_labels: list[str] = None) -> dict:
+    def generate_post_from_text(
+        self, text: str, self_labels: list[str] | None = None
+    ) -> dict:
         """_summary_
 
         Args:
@@ -226,8 +226,12 @@ class AtprotoClient:
             facets.append(facet)
         post["facets"] = facets
 
-        created_at = datetime.datetime.now(
-            tz=datetime.timezone.utc).replace(tzinfo=None).isoformat(timespec="milliseconds") + "Z"
+        created_at = (
+            datetime.datetime.now(tz=datetime.timezone.utc)
+            .replace(tzinfo=None)
+            .isoformat(timespec="milliseconds")
+            + "Z"
+        )
         post["createdAt"] = created_at
 
         return post
@@ -257,22 +261,27 @@ class AtprotoClient:
 
         return blob
 
-    def create_record(self, text: str, image_url: str = None, self_labels: list[str] = None):
+    def create_record(
+        self,
+        text: str,
+        image_url: str | None = None,
+        self_labels: list[str] | None = None,
+    ):
         endpoint = "com.atproto.repo.createRecord"
         method = "POST"
 
-        post = self.generate_post_from_text(
-            text=text, self_labels=self_labels
-        )
+        post = self.generate_post_from_text(text=text, self_labels=self_labels)
 
         if image_url is not None:
             blob = self.upload_image(image_url=image_url)
             post["embed"] = {
                 "$type": "app.bsky.embed.images",
-                "images": [{
-                    "alt": "image",
-                    "image": blob,
-                }],
+                "images": [
+                    {
+                        "alt": "image",
+                        "image": blob,
+                    }
+                ],
             }
 
         data = {
@@ -302,9 +311,7 @@ class AtprotoClient:
         method = "GET"
 
         params = {"actor": actor}
-        headers = {
-            "Authorization": f"Bearer {self.access_jwt}"
-        }
+        headers = {"Authorization": f"Bearer {self.access_jwt}"}
 
         response = self._request(
             endpoint=endpoint, method=method, params=params, headers=headers
@@ -331,8 +338,6 @@ class AtprotoClient:
             "limit": limit,
         }
 
-        response = self._request(
-            endpoint=endpoint, method=method, params=params
-        )
+        response = self._request(endpoint=endpoint, method=method, params=params)
 
         return response.json()
